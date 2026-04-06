@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(pwsh -Command \"Get-ChildItem -Force\")",
-      "Bash(pwsh -Command \"New-Item -ItemType Directory -Path '.github/workflows' -Force | Out-Null\")"
+      "Bash(pwsh -Command \"New-Item -ItemType Directory -Path '.github/workflows' -Force | Out-Null\")",
+      "Bash(pwsh -Command \"git config --get remote.origin.url\")",
+      "Bash(pwsh -Command \"if \\(Test-Path 'dist'\\) { Get-ChildItem -Path 'dist' -Force | Select-Object Name, Length, LastWriteTime } else { Write-Output 'dist folder does not exist' }\")",
+      "Bash(pwsh -Command \"Get-Content 'dist\\\\index.html' -Head 20\")"
     ]
   }
 }
