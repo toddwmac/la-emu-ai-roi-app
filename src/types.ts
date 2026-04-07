@@ -10,6 +10,7 @@ export interface Task {
   estimatedTimeSavingsPercent: number;
   recommendedTools: AITool[];
   notes: string;
+  manualAIAdjustment?: boolean;
 }
 
 export interface AITool {

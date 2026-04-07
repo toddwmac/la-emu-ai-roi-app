@@ -49,6 +49,8 @@ export const TaskList: React.FC<TaskListProps> = ({
     return 'bg-slate-400';
   };
 
+  const hasManualAdjustment = (task: Task) => task.manualAIAdjustment === true;
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -141,6 +143,12 @@ export const TaskList: React.FC<TaskListProps> = ({
                       <h4 className="font-semibold text-slate-800 truncate">
                         {task.name || 'Untitled Task'}
                       </h4>
+                      {hasManualAdjustment(task) && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300" title="Manual adjustment">
+                          <Zap className="w-3 h-3 inline mr-0.5" />
+                          Adjusted
+                        </span>
+                      )}
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getPotentialColor(
                           task.aiPotential

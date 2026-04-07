@@ -20,12 +20,13 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
 }) => {
   const [formData, setFormData] = React.useState<Partial<Task>>(task || {
     name: '',
-    category: CATEGORIES[0],
+    category: CATEGORIES.length > 0 ? CATEGORIES[0] : '',
     weeklyHours: 2,
     importance: 5,
     repetitiveness: 5,
     description: '',
     notes: '',
+    manualAIAdjustment: false,
   });
 
   const [aiPotential, setAiPotential] = React.useState(0);
@@ -43,8 +44,17 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
     }
   }, [task]);
 
+  // Toggle manual AI adjustment mode
+  const toggleManualAIAdjustment = React.useCallback(() => {
+    setFormData(prev => ({
+      ...prev,
+      manualAIAdjustment: !prev.manualAIAdjustment
+    }));
+  }, []);
+
+  // Recalculate AI potential based on form inputs
   useEffect(() => {
-    if (isOpen && formData.category) {
+    if (!formData.manualAIAdjustment && formData.category) {
       const potential = calculateAIPotential(formData);
       const savings = calculateSavingsPercent(potential);
       const tools = getRecommendedTools(formData.category);
@@ -52,8 +62,11 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
       setAiPotential(potential);
       setSavingsPercent(savings);
       setRecommendedTools(tools);
+    } else if (formData.manualAIAdjustment && formData.category && isOpen) {
+      // When in manual mode, recalculate tools based on category
+      setRecommendedTools(getRecommendedTools(formData.category));
     }
-  }, [formData.category, formData.repetitiveness, formData.weeklyHours, isOpen]);
+  }, [formData.manualAIAdjustment, formData.category, formData.repetitiveness, formData.weeklyHours, isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -91,6 +104,7 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
       aiPotential,
       estimatedTimeSavingsPercent: savingsPercent,
       recommendedTools,
+      manualAIAdjustment: formData.manualAIAdjustment || false,
     };
 
     onSave(newTask);
@@ -120,12 +134,24 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
                 Define your task and see AI recommendations
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-3">
+              {formData.manualAIAdjustment && (
+                <button
+                  type="button"
+                  onClick={toggleManualAIAdjustment}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 text-sm font-medium rounded-lg hover:bg-amber-200 transition-colors"
+                >
+                  <Zap className="w-4 h-4" />
+                  Manual Mode On
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -247,53 +273,112 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
             </div>
 
             {/* AI Analysis Preview */}
-            {aiPotential > 0 && (
-              <div className="bg-gradient-to-br from-teal-50 to-blue-50 rounded-xl p-6 border border-teal-100">
-                <div className="flex items-center gap-2 mb-4">
+            <div className="bg-gradient-to-br from-teal-50 to-blue-50 rounded-xl p-6 border border-teal-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-teal-600" />
                   <h3 className="font-semibold text-slate-800">AI Analysis</h3>
                 </div>
-
-                <div className="grid md:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-white rounded-lg p-4 border border-teal-200">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">AI Potential</p>
-                    <p className="text-2xl font-bold text-teal-600">{aiPotential}%</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-4 border border-teal-200">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Weekly Savings</p>
-                    <p className="text-2xl font-bold text-emerald-600">{weeklySavingsHours.toFixed(1)}h</p>
-                    <p className="text-xs text-slate-600">{formatCurrency(weeklySavingsDollars)}/week</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-4 border border-teal-200">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Time Saved</p>
-                    <p className="text-2xl font-bold text-blue-600">{savingsPercent}%</p>
-                  </div>
-                </div>
-
-                {recommendedTools.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3">Recommended AI Tools</h4>
-                    <div className="grid md:grid-cols-2 gap-2">
-                      {recommendedTools.slice(0, 4).map((tool, i) => (
-                        <div key={i} className="bg-white rounded-lg p-3 border border-slate-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-slate-800 text-sm">{tool.name}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              tool.adoptionEffort === 'Low' ? 'bg-emerald-100 text-emerald-700' :
-                              tool.adoptionEffort === 'Medium' ? 'bg-amber-100 text-amber-700' :
-                              'bg-slate-100 text-slate-700'
-                            }`}>
-                              {tool.adoptionEffort}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-600">{tool.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {formData.manualAIAdjustment && (
+                  <button
+                    type="button"
+                    onClick={toggleManualAIAdjustment}
+                    className="text-xs text-slate-500 hover:text-slate-700 underline"
+                  >
+                    Use Auto-Calculation
+                  </button>
                 )}
               </div>
-            )}
+
+              {formData.manualAIAdjustment ? (
+                <>
+                  <div className="mb-4">
+                    <p className="text-sm text-slate-600 mb-3">
+                      Adjust the AI impact rating based on your judgment. This will override the automatic calculation.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        value={aiPotential}
+                        onChange={(e) => setAiPotential(parseInt(e.target.value))}
+                        min="0"
+                        max="100"
+                        className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-500"
+                      />
+                      <span className="text-lg font-semibold text-teal-600 w-12 text-center">{aiPotential}%</span>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white rounded-lg p-4 border border-teal-200">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">AI Impact</p>
+                      <p className="text-2xl font-bold text-teal-600">{aiPotential}%</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-teal-200">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Weekly Savings</p>
+                      <p className="text-2xl font-bold text-emerald-600">{weeklySavingsHours.toFixed(1)}h</p>
+                      <p className="text-xs text-slate-600">{formatCurrency(weeklySavingsDollars)}/week</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-teal-200">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Time Saved</p>
+                      <p className="text-2xl font-bold text-blue-600">{savingsPercent}%</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {aiPotential > 0 && (
+                    <div className="grid md:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-white rounded-lg p-4 border border-teal-200">
+                        <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">AI Potential</p>
+                        <p className="text-2xl font-bold text-teal-600">{aiPotential}%</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-teal-200">
+                        <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Weekly Savings</p>
+                        <p className="text-2xl font-bold text-emerald-600">{weeklySavingsHours.toFixed(1)}h</p>
+                        <p className="text-xs text-slate-600">{formatCurrency(weeklySavingsDollars)}/week</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-teal-200">
+                        <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Time Saved</p>
+                        <p className="text-2xl font-bold text-blue-600">{savingsPercent}%</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={toggleManualAIAdjustment}
+                    className="w-full mb-4 px-4 py-2 bg-white border-2 border-dashed border-amber-300 text-amber-600 text-sm font-medium rounded-lg hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Adjust AI Impact Manually
+                  </button>
+
+                  {recommendedTools.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-700 mb-3">Recommended AI Tools</h4>
+                      <div className="grid md:grid-cols-2 gap-2">
+                        {recommendedTools.slice(0, 4).map((tool, i) => (
+                          <div key={i} className="bg-white rounded-lg p-3 border border-slate-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-medium text-slate-800 text-sm">{tool.name}</span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                tool.adoptionEffort === 'Low' ? 'bg-emerald-100 text-emerald-700' :
+                                tool.adoptionEffort === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                                'bg-slate-100 text-slate-700'
+                              }`}>
+                                {tool.adoptionEffort}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600">{tool.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
 
             {/* Actions */}
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">

@@ -12,7 +12,9 @@
       "Bash(pwsh -Command \"npm run build\")",
       "Bash(pwsh -Command \"Rename-Item -Path 'src\\\\App.tsx' -NewName 'AppOriginal.tsx' -Force\")",
       "Bash(pwsh -Command \"Rename-Item -Path 'src\\\\AppEnhanced.tsx' -NewName 'App.tsx' -Force\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(pwsh -Command \"cd 'c:\\\\Users\\\\toddw\\\\OneDrive\\\\Projects and Orgs\\\\Applied AI\\\\Marketing\\\\ai-roi-calc\\\\la-emu-ai-roi-app'; npm run dev\")",
+      "Bash(pwsh -Command \"cd 'c:\\\\Users\\\\toddw\\\\OneDrive\\\\Projects and Orgs\\\\Applied AI\\\\Marketing\\\\ai-roi-calc\\\\la-emu-ai-roi-app'; npm run build\")"
     ]
   }
 }
