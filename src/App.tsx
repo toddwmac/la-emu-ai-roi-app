@@ -75,6 +75,8 @@ import { TaskList } from './components/TaskList';
 import { QuickAddTasks } from './components/QuickAddTasks';
 import ToastContainer from './components/ToastContainer';
 import { ToastProvider, useToastContext } from './contexts/ToastContext';
+import { CalculationGuide } from './components/CalculationGuide';
+import { CalculationTooltip } from './components/CalculationTooltip';
 
 const DEFAULT_PROFILE: UserProfile = {
   name: '',
@@ -468,6 +470,7 @@ const EnhancedTasksStep: React.FC<{
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showAnalysisLibrary, setShowAnalysisLibrary] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [showCalculationGuide, setShowCalculationGuide] = useState(false);
 
   // Debounced save function
   const debouncedSave = useCallback(
@@ -809,16 +812,40 @@ const EnhancedTasksStep: React.FC<{
           <h3 className="text-2xl font-bold mb-6">Total Savings Potential</h3>
           <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <p className="text-slate-400 text-sm mb-2">Weekly Time Savings</p>
-              <p className="text-4xl font-bold text-teal-400">{totalSavings.totalHours}h</p>
+              <CalculationTooltip
+                title="Weekly Time Savings"
+                description="Total hours saved per week across all tasks, calculated by summing each task's (weekly hours × time savings %)."
+                formula="Total Hours = Σ (Task Hours × Time Savings %)"
+                example="Task A: 5h × 30% = 1.5h; Task B: 3h × 45% = 1.35h; Total = 2.85h"
+                position="bottom"
+              >
+                <p className="text-slate-400 text-sm mb-2">Weekly Time Savings</p>
+                <p className="text-4xl font-bold text-teal-400">{totalSavings.totalHours}h</p>
+              </CalculationTooltip>
             </div>
             <div>
-              <p className="text-slate-400 text-sm mb-2">Weekly Cost Savings</p>
-              <p className="text-4xl font-bold text-emerald-400">{formatCurrency(totalSavings.totalSavings)}</p>
+              <CalculationTooltip
+                title="Weekly Cost Savings"
+                description="The monetary value of time saved per week, calculated by multiplying hours saved by your hourly rate."
+                formula="Weekly Savings = Hours Saved × Hourly Rate"
+                example="2.85 hours saved × $100/hour = $285/week"
+                position="bottom"
+              >
+                <p className="text-slate-400 text-sm mb-2">Weekly Cost Savings</p>
+                <p className="text-4xl font-bold text-emerald-400">{formatCurrency(totalSavings.totalSavings)}</p>
+              </CalculationTooltip>
             </div>
             <div>
-              <p className="text-slate-400 text-sm mb-2">Annual Value</p>
-              <p className="text-4xl font-bold text-blue-400">{formatCurrency(totalSavings.totalSavings * 52)}</p>
+              <CalculationTooltip
+                title="Annual Savings"
+                description="Projected annual savings by multiplying weekly cost savings by 52 weeks."
+                formula="Annual Savings = Weekly Savings × 52"
+                example="$285/week × 52 weeks = $14,820/year"
+                position="bottom"
+              >
+                <p className="text-slate-400 text-sm mb-2">Annual Value</p>
+                <p className="text-4xl font-bold text-blue-400">{formatCurrency(totalSavings.totalSavings * 52)}</p>
+              </CalculationTooltip>
             </div>
           </div>
         </div>
@@ -1276,6 +1303,15 @@ const EnhancedTasksStep: React.FC<{
           hasLoaded && state.tasks.length > 0 ? (
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setShowCalculationGuide(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-lg border border-white/20 text-sm text-white hover:bg-white/20 transition-colors"
+                title="View Calculation Guide"
+              >
+                <Zap className="w-4 h-4 text-amber-400" />
+                <span className="hidden sm:inline">Guide</span>
+              </button>
+
+              <button
                 onClick={() => setShowAnalysisLibrary(true)}
                 className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-lg border border-white/20 text-sm text-white hover:bg-white/20 transition-colors"
                 title="Open Analysis Library (Ctrl+O)"
@@ -1348,6 +1384,11 @@ const EnhancedTasksStep: React.FC<{
         isOpen={showBulkImport}
         onImport={handleBulkImport}
         onClose={() => setShowBulkImport(false)}
+      />
+
+      <CalculationGuide
+        isOpen={showCalculationGuide}
+        onClose={() => setShowCalculationGuide(false)}
       />
 
       {/* Auto-save indicator */}
