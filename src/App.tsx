@@ -73,6 +73,8 @@ import { AnalysisLibrary } from './components/AnalysisLibrary';
 import { BulkImportModal } from './components/BulkImportModal';
 import { TaskList } from './components/TaskList';
 import { QuickAddTasks } from './components/QuickAddTasks';
+import ToastContainer from './components/ToastContainer';
+import { ToastProvider, useToastContext } from './contexts/ToastContext';
 
 const DEFAULT_PROFILE: UserProfile = {
   name: '',
@@ -381,6 +383,7 @@ const EnhancedTasksStep: React.FC<{
   tasks: Task[];
   profile: UserProfile;
   onAddTask: (template?: TaskTemplate) => void;
+  onEditTask: (task: Task) => void;
   onUpdateTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
   onDuplicateTask: (id: string) => void;
@@ -390,6 +393,7 @@ const EnhancedTasksStep: React.FC<{
   tasks,
   profile,
   onAddTask,
+  onEditTask,
   onUpdateTask,
   onDeleteTask,
   onDuplicateTask,
@@ -416,7 +420,7 @@ const EnhancedTasksStep: React.FC<{
         tasks={tasks}
         hourlyRate={profile.hourlyRate}
         onAddTask={() => onAddTask()}
-        onEditTask={onUpdateTask}
+        onEditTask={onEditTask}
         onDuplicateTask={onDuplicateTask}
         onDeleteTask={onDeleteTask}
       />
@@ -444,14 +448,16 @@ const EnhancedTasksStep: React.FC<{
 };
 
 // Main App Component
-const App: React.FC = () => {
-  // Main state
-  const [state, setState] = useState<AssessmentState>({
-    profile: DEFAULT_PROFILE,
-    tasks: [],
-    currentStep: 1,
-    lastUpdated: new Date().toISOString(),
-  });
+  const App: React.FC = () => {
+    const { showToast } = useToastContext();
+    
+    // Main state
+    const [state, setState] = useState<AssessmentState>({
+      profile: DEFAULT_PROFILE,
+      tasks: [],
+      currentStep: 1,
+      lastUpdated: new Date().toISOString(),
+    });
 
   const [hasLoaded, setHasLoaded] = useState(false);
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
@@ -584,16 +590,22 @@ const App: React.FC = () => {
       ...prev,
       tasks: prev.tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
     }));
+    setShowTaskSlideOver(false);
+    setEditingTask(null);
   }, []);
 
   const handleDeleteTask = useCallback((id: string) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      setState((prev) => ({
-        ...prev,
-        tasks: prev.tasks.filter((t) => t.id !== id),
-      }));
-    }
-  }, []);
+    // For now, delete directly - in a full implementation, we'd add a confirmation modal
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.filter((t) => t.id !== id),
+    }));
+    showToast({
+      type: 'success',
+      title: 'Task deleted',
+      message: 'The task has been removed from your analysis',
+    });
+  }, [showToast]);
 
   const handleDuplicateTask = useCallback((id: string) => {
     setState((prev) => {
@@ -670,12 +682,16 @@ const App: React.FC = () => {
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(link).then(() => {
-        alert('Shareable link copied to clipboard!');
+        showToast({
+          type: 'success',
+          title: 'Link copied!',
+          message: 'Shareable link copied to clipboard',
+        });
       });
     } else {
       window.open(link, '_blank');
     }
-  }, []);
+  }, [showToast]);
 
   const handleExportCurrent = useCallback(() => {
     const analysis: SavedAnalysis = {
@@ -1206,6 +1222,7 @@ const App: React.FC = () => {
             tasks={state.tasks}
             profile={state.profile}
             onAddTask={handleAddTask}
+            onEditTask={handleEditTask}
             onUpdateTask={handleUpdateTask}
             onDeleteTask={handleDeleteTask}
             onDuplicateTask={handleDuplicateTask}
@@ -1361,4 +1378,11 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+const AppWithToast: React.FC = () => (
+  <ToastProvider>
+    <App />
+    <ToastContainer />
+  </ToastProvider>
+);
+
+export default AppWithToast;

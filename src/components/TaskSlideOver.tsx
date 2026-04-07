@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { X, Clock, TrendingUp, Zap } from 'lucide-react';
 import { Task, AITool } from '../types';
 import { CATEGORIES, calculateAIPotential, calculateSavingsPercent, getRecommendedTools, formatCurrency } from '../data/templates';
+import { useToastContext } from '../contexts/ToastContext';
 
 interface TaskSlideOverProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
   onSave,
   onClose,
 }) => {
+  const { showToast } = useToastContext();
   const [formData, setFormData] = React.useState<Partial<Task>>(task || {
     name: '',
     category: CATEGORIES.length > 0 ? CATEGORIES[0] : '',
@@ -37,7 +39,10 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
 
   useEffect(() => {
     if (task) {
-      setFormData(task);
+      setFormData({
+        ...task,
+        manualAIAdjustment: task.manualAIAdjustment || false,
+      });
       setAiPotential(task.aiPotential || 0);
       setSavingsPercent(task.estimatedTimeSavingsPercent || 0);
       setRecommendedTools(task.recommendedTools || []);
@@ -66,7 +71,7 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
       // When in manual mode, recalculate tools based on category
       setRecommendedTools(getRecommendedTools(formData.category));
     }
-  }, [formData.manualAIAdjustment, formData.category, formData.repetitiveness, formData.weeklyHours, isOpen]);
+  }, [formData.manualAIAdjustment, formData.category, formData.repetitiveness, isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -88,7 +93,11 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
     e.preventDefault();
 
     if (!formData.name?.trim()) {
-      alert('Please enter a task name');
+      showToast({
+        type: 'error',
+        title: 'Task name required',
+        message: 'Please enter a task name to continue',
+      });
       return;
     }
 
@@ -108,6 +117,11 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
     };
 
     onSave(newTask);
+    showToast({
+      type: 'success',
+      title: task?.id ? 'Task updated' : 'Task added',
+      message: 'Your task has been saved successfully',
+    });
   };
 
   const weeklySavingsHours = (formData.weeklyHours! * savingsPercent) / 100;
@@ -300,7 +314,11 @@ export const TaskSlideOver: React.FC<TaskSlideOverProps> = ({
                       <input
                         type="range"
                         value={aiPotential}
-                        onChange={(e) => setAiPotential(parseInt(e.target.value))}
+                        onChange={(e) => {
+                          const newPotential = parseInt(e.target.value);
+                          setAiPotential(newPotential);
+                          setSavingsPercent(calculateSavingsPercent(newPotential));
+                        }}
                         min="0"
                         max="100"
                         className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-500"

@@ -54,3 +54,31 @@ export interface TaskTemplate {
   repetitiveness: number;
   description: string;
 }
+
+// Toast notification types
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
+  id: string;
+  type: ToastType;
+  title: string;
+  message?: string;
+  duration?: number;
+}
+
+export interface ToastContextType {
+  toasts: Toast[];
+  showToast: (toast: Omit<Toast, 'id'>) => void;
+  removeToast: (id: string) => void;
+}
+
+// Form validation types
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface FormValidation {
+  isValid: boolean;
+  errors: ValidationError[];
+}
