@@ -5,7 +5,14 @@
       "Bash(pwsh -Command \"New-Item -ItemType Directory -Path '.github/workflows' -Force | Out-Null\")",
       "Bash(pwsh -Command \"git config --get remote.origin.url\")",
       "Bash(pwsh -Command \"if \\(Test-Path 'dist'\\) { Get-ChildItem -Path 'dist' -Force | Select-Object Name, Length, LastWriteTime } else { Write-Output 'dist folder does not exist' }\")",
-      "Bash(pwsh -Command \"Get-Content 'dist\\\\index.html' -Head 20\")"
+      "Bash(pwsh -Command \"Get-Content 'dist\\\\index.html' -Head 20\")",
+      "Bash(pwsh -Command \"gh pr list\")",
+      "Bash(pwsh -Command \"git remote -v\")",
+      "Bash(pwsh -Command \"Get-ChildItem -Path 'src' -Recurse -File | Select-Object FullName\")",
+      "Bash(pwsh -Command \"npm run build\")",
+      "Bash(pwsh -Command \"Rename-Item -Path 'src\\\\App.tsx' -NewName 'AppOriginal.tsx' -Force\")",
+      "Bash(pwsh -Command \"Rename-Item -Path 'src\\\\AppEnhanced.tsx' -NewName 'App.tsx' -Force\")",
+      "Bash(npm run:*)"
     ]
   }
 }

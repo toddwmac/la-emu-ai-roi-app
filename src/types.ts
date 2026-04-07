@@ -1,0 +1,55 @@
+export interface Task {
+  id: string;
+  name: string;
+  category: string;
+  weeklyHours: number;
+  importance: number;
+  repetitiveness: number;
+  description: string;
+  aiPotential: number;
+  estimatedTimeSavingsPercent: number;
+  recommendedTools: AITool[];
+  notes: string;
+}
+
+export interface AITool {
+  name: string;
+  category: string;
+  description: string;
+  url: string;
+  adoptionEffort: 'Low' | 'Medium' | 'High';
+}
+
+export interface UserProfile {
+  name: string;
+  role: string;
+  organization: string;
+  hourlyRate: number;
+  email: string;
+}
+
+export interface SavedAnalysis {
+  id: string;
+  name: string;
+  description: string;
+  profile: UserProfile;
+  tasks: Task[];
+  createdAt: string;
+  lastModified: string;
+}
+
+export interface AssessmentState {
+  profile: UserProfile;
+  tasks: Task[];
+  currentStep: number;
+  lastUpdated: string;
+}
+
+export interface TaskTemplate {
+  name: string;
+  category: string;
+  weeklyHours: number;
+  importance: number;
+  repetitiveness: number;
+  description: string;
+}
