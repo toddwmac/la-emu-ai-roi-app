@@ -1160,13 +1160,16 @@ const EnhancedTasksStep: React.FC<{
                     <p className="font-medium text-slate-800">{tool.name}</p>
                     <p className="text-sm text-slate-500">{tool.description}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full border ${
-                    tool.adoptionEffort === 'Low' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' :
-                    tool.adoptionEffort === 'Medium' ? 'bg-amber-100 text-amber-700 border-amber-300' :
-                    'bg-rose-100 text-rose-700 border-rose-300'
-                  }`}>
-                    {tool.adoptionEffort}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <p className="text-xs text-slate-500 mb-1">Adoption Effort</p>
+                    <span className={`text-xs px-2 py-1 rounded-full border ${
+                      tool.adoptionEffort === 'Low' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' :
+                      tool.adoptionEffort === 'Medium' ? 'bg-amber-100 text-amber-700 border-amber-300' :
+                      'bg-rose-100 text-rose-700 border-rose-300'
+                    }`}>
+                      {tool.adoptionEffort}
+                    </span>
+                  </div>
                 </div>
               ))}
           </div>
